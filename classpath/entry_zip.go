@@ -3,7 +3,6 @@ package classpath
 import (
 	"archive/zip"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )

@@ -1,7 +1,6 @@
 package classpath
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
