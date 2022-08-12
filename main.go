@@ -19,6 +19,7 @@ func main() {
 }
 
 func startJVM(cmd *Cmd) {
+	cp := classpath.Prse(cmd.XjreOption, cmd.cpOption)
 	fmt.Printf("classpath: %s class:%s args:%v\n",
 		cmd.cpOption, cmd.class, cmd.args)
 }
