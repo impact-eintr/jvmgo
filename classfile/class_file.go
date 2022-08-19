@@ -34,7 +34,7 @@ type ClassFile struct {
 	interClass uint16
 	interfaces []uint16
 	fields []*MemberInfo
-	methods []*MerberInfo
+	methods []*MemberInfo
 	attributes []AttributeInfo
 }
 

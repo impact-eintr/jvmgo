@@ -26,7 +26,7 @@ type MemberInfo struct {
 	attributes []AttributeInfo
 }
 
-func readMembers(reader *ClassReader, cp constantPool) []*MemberInfo  {
+func readMembers(reader *ClassReader, cp ConstantPool) []*MemberInfo  {
 	memberCount := reader.readUint16()
 	members := make([]*MemberInfo, memberCount)
 	for i := range members {
@@ -35,7 +35,7 @@ func readMembers(reader *ClassReader, cp constantPool) []*MemberInfo  {
 	return members
 }
 
-func readMember(reader *ClassReader, cp constantPool) *MemberInfo {
+func readMember(reader *ClassReader, cp ConstantPool) *MemberInfo {
 	return &MemberInfo{
 		cp: cp,
 		accessFlags: reader.readUint16(),

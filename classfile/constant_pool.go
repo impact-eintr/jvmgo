@@ -11,10 +11,10 @@ func readConstantPool(reader *ClassReader) ConstantPool {
 	for i := 1;i < cpCount;i++ {
 		cp[i] = readConstantInfo(reader, cp)
 
-	switch cp[i].(type) {
-	case *ConstantLongInfo, *ConstantDoubleInfo:
-		i++
-	}
+		switch cp[i].(type) {
+		case *ConstantLongInfo, *ConstantDoubleInfo: // Long 和 Double 占用两个位置
+			i++
+		}
 	}
 	return cp
 }
@@ -33,7 +33,7 @@ func (self ConstantPool) getNameAndType(index uint16) (string, string) {
 	return name, _type
 }
 
-func (self ConstantPool) getClassName(index uint16) ConstantInfo {
+func (self ConstantPool) getClassName(index uint16) string {
 	classInfo := self.getConstantInfo(index).(*ConstantClassInfo)
 	return self.getUtf8(classInfo.nameIndex)
 }
