@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-
-
 func main() {
 	cmd := parseCmd()
 

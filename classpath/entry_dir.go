@@ -2,6 +2,7 @@ package classpath
 
 import (
 	"io/ioutil"
+	"log"
 	"path/filepath"
 )
 
@@ -19,7 +20,8 @@ func newDirEntry(path string) *DirEntry {
 
 
 func (self *DirEntry) readClass(className string) ([]byte, Entry, error) {
-	fileName := filepath.Join(self.absDir ,className)
+	fileName := filepath.Join(self.absDir, className)
+	log.Println(className, fileName)
 	data, err := ioutil.ReadFile(fileName)
 	return data, self, err
 }

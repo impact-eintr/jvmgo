@@ -19,7 +19,7 @@ func newEntry(path string) Entry {
 	}
 
 	if strings.HasSuffix(path, "*") {
-
+		return newWildcardEntry(path)
 	}
 
 	if strings.HasSuffix(path, ".jar") || strings.HasSuffix(path, ".JAR") ||
