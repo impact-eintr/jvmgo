@@ -11,7 +11,7 @@ type NoOperandsInstruction struct {
 	// empty
 }
 
-func (self *NoOperandsInstruction) Fetchoperands(reader *BytecodeReader) {
+func (self *NoOperandsInstruction) FetchOperands(reader *BytecodeReader) {
 	// nothing to do
 }
 
