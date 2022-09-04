@@ -18,7 +18,7 @@ func (self *ConstantIntegerInfo) readInfo(reader *ClassReader) {
 	self.val = int32(bytes)
 }
 
-func (self *ConstantIntegerInfo) Vlaue() int32 {
+func (self *ConstantIntegerInfo) Value() int32 {
 	return self.val
 }
 
@@ -37,7 +37,7 @@ func (self *ConstantFloatInfo) readInfo(reader *ClassReader) {
 	self.val = float32(bytes)
 }
 
-func (self *ConstantFloatInfo) Vlaue() float32 {
+func (self *ConstantFloatInfo) Value() float32 {
 	return self.val
 }
 
