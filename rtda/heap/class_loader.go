@@ -52,7 +52,7 @@ func (self *ClassLoader) defineClass(data []byte) *Class {
 	class := parseClass(data)
 	class.loader = self
 	resolveSuperClass(class)
-	resolveinterfaces(class)
+	resolveInterfaces(class)
 	self.classMap[class.name] = class // 注册登记
 	return class
 }
@@ -79,4 +79,79 @@ func resolveInterfaces(class *Class) {
 			class.interfaces[i] = class.loader.LoadClass(interfaceName)
 		}
 	}
+}
+
+func link(class *Class) {
+	verify(class)
+	prepare(class)
+}
+
+func verify(class *Class) {
+	//TODO
+}
+
+func prepare(class *Class) {
+	calcInstanceFieldSlotIds(class)
+	calcStaticFieldSlotIds(class)
+	allocAndInitStaticVars(class)
+}
+
+// calculate how many Instantce vars do we need
+func calcInstanceFieldSlotIds(class *Class) {
+	slotId := uint(0)
+	if class.superClass != nil {
+		slotId = class.superClass.instanceSlotCount
+	}
+	for _, field := range class.fields {
+		if field.IsStatic() {
+			field.slotId = slotId
+			slotId++
+			if field.isLongOrDouble() {
+				slotId++
+			}
+		}
+	}
+	class.staticSlotCount = slotId // how many slot we need
+}
+
+// calculate how many STATIC vars do we need
+func calcStaticFieldSlotIds(class *Class) {
+	slotId := uint(0)
+	for _, field := range class.fields {
+		if field.IsStatic() {
+			field.slotId = slotId
+			slotId++
+			if field.isLongOrDouble() {
+				slotId++
+			}
+		}
+	}
+	class.staticSlotCount = slotId // how many slot we need
+}
+
+
+func allocAndInitStaticVars(class *Class) {
+	class.staticVars = newSlots(class.staticSlotCount) // allocate mem for static vars
+	for _, field := range class.fields {
+		if field.IsStatic() && field.IsFinal() {
+			initStaticFinalVar(class, field) // init the satic final vars
+		}
+	}
+}
+
+//
+func initStaticFinalVar(class *Class, field *Field) {
+	vars := class.staticVars
+	cp := class.constantPool
+	cpIndex := field.ConstValueIndex()
+	slotId := field.SlotId()
+
+	if cpIndex > 0 {
+		switch field.descriptor() {
+		case "Z", "B", "C", "S", "I":
+		case "J":
+
+		}
+	}
+
 }

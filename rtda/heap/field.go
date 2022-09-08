@@ -40,3 +40,15 @@ func (self *Field) IsTransient() bool {
 func (self *Field) IsEnum() bool {
 	return 0 != self.accessFlags&ACC_ENUM
 }
+
+func (self *Field) ConstValueIndex() uint {
+	return self.constValueIndex
+}
+
+func (self *Field) SlotId() uint {
+	return self.slotId
+}
+
+func (self *Field) isLongOrDouble() bool {
+	return self.descriptor == "J" || self.descriptor == "D"
+}
