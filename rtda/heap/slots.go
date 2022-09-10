@@ -16,7 +16,7 @@ func newSlots(slotCount uint) Slots {
 	return nil
 }
 
-func (self Slots) SetInt(index int, val int32) {
+func (self Slots) SetInt(index uint, val int32) {
 	self[index].num = val
 }
 

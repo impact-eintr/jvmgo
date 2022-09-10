@@ -1,6 +1,9 @@
 package heap
 
-import "jvm/classfile"
+import (
+	"jvm/classfile"
+	"strings"
+)
 
 type Class struct {
 	accessFlags uint16
@@ -24,7 +27,7 @@ func newClass(cf *classfile.ClassFile) *Class {
 	class.name = cf.ClassName()
 	class.superClassName = cf.SuperClassName()
 	class.interfaceNames =cf.InterfaceNames()
-	class.constantPool = newConstantPool(class, cf.ConstantPool())
+	class.constantPool = newConstantPool(class, cf.ConstantPool()) // 常量池赋值
 	class.fields = newFileds(class, cf.Fields())
 	class.methods = newMethods(class, cf.Methods())
 	return class
@@ -60,4 +63,44 @@ func (self *Class) IsAnnotation() bool {
 
 func (self *Class) IsEnum() bool {
 	return 0 != self.accessFlags&ACC_ENUM
+}
+
+func (self *Class) ConstantPool() *ConstantPool {
+	return self.constantPool
+}
+
+func (self *Class) StaticVars() Slots {
+	return self.staticVars
+}
+
+// JVM 5.4.4
+// 检测是否可以被某个类访问:
+func (self *Class) isAccessibleTo(other *Class) bool {
+	return self.IsPublic() ||
+		self.getPackageName() == other.getPackageName()
+}
+
+func (self *Class) getPackageName() string {
+	if i := strings.LastIndex(self.name, "/"); i >= 0 {
+		return self.name[:i]
+	}
+	return ""
+}
+
+func (self *Class) GetMainMethod() *Method {
+	return self.getStaticMethod("main", "[Ljava/lang/String;]V")
+}
+
+func (self *Class) getStaticMethod(name, descriptor string) *Method {
+	for _, method := range self.methods {
+		if method.IsStatic() && method.name == name &&
+			method.descriptor == descriptor {
+			return method
+		}
+	}
+	return nil
+}
+
+func (self *Class) NewObject() *Object {
+	return newObject(self)
 }

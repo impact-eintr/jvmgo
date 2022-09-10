@@ -20,7 +20,6 @@ func newConstantPool(class *Class, cfCp classfile.ConstantPool) *ConstantPool {
 	consts := make([]Constant, cpCount)
 	rtCp := &ConstantPool{class, consts}
 
-	// TODO
 	for i := 1;i < cpCount;i++ {
 		cpInfo := cfCp[i]
 		switch cpInfo.(type) {
@@ -35,7 +34,7 @@ func newConstantPool(class *Class, cfCp classfile.ConstantPool) *ConstantPool {
 			consts[i] = longInfo.Value()
 			i++
 		case *classfile.ConstantDoubleInfo:
-			doubleInfo := cpInfo.(*classfile.ConstantLongInfo)
+			doubleInfo := cpInfo.(*classfile.ConstantDoubleInfo)
 			consts[i] = doubleInfo.Value()
 			i++
 		case *classfile.ConstantStringInfo:
@@ -43,7 +42,7 @@ func newConstantPool(class *Class, cfCp classfile.ConstantPool) *ConstantPool {
 			consts[i] = stringInfo.String()
 		case *classfile.ConstantClassInfo:
 			classInfo := cpInfo.(*classfile.ConstantClassInfo)
-			consts[i] = newClassRef(rtCp, classInfo)
+			consts[i] = newClassRef(rtCp, classInfo) // 当前类的一个引用
 		case *classfile.ConstantFieldrefInfo:
 			fieldrefInfo := cpInfo.(*classfile.ConstantFieldrefInfo)
 			consts[i] = newFieldRef(rtCp, fieldrefInfo)

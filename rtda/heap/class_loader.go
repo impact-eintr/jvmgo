@@ -129,7 +129,6 @@ func calcStaticFieldSlotIds(class *Class) {
 	class.staticSlotCount = slotId // how many slot we need
 }
 
-
 func allocAndInitStaticVars(class *Class) {
 	class.staticVars = newSlots(class.staticSlotCount) // allocate mem for static vars
 	for _, field := range class.fields {
@@ -139,7 +138,6 @@ func allocAndInitStaticVars(class *Class) {
 	}
 }
 
-//
 func initStaticFinalVar(class *Class, field *Field) {
 	vars := class.staticVars
 	cp := class.constantPool
@@ -147,11 +145,21 @@ func initStaticFinalVar(class *Class, field *Field) {
 	slotId := field.SlotId()
 
 	if cpIndex > 0 {
-		switch field.descriptor() {
+		switch field.Descriptor() {
 		case "Z", "B", "C", "S", "I":
+			val := cp.GetConstant(cpIndex).(int32)
+			vars.SetInt(slotId, val)
 		case "J":
-
+			val := cp.GetConstant(cpIndex).(int64)
+			vars.SetLong(slotId, val)
+		case "F":
+			val := cp.GetConstant(cpIndex).(float32)
+			vars.SetFloat(slotId, val)
+		case "D":
+			val := cp.GetConstant(cpIndex).(float64)
+			vars.SetDouble(slotId, val)
+		case "Ljava/lang/String;":
+			panic("todo")
 		}
 	}
-
 }
