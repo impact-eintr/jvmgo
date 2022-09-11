@@ -1,5 +1,7 @@
 package heap
 
+import "log"
+
 // 1. 类符号引用
 // 2. 字段符号引用
 // 3. 方法符号引用
@@ -20,8 +22,9 @@ func (self *SymRef) ResolvedClass() *Class {
 // 如果类D通过符号引用类C的话
 // 要解析N 先用D的类加载器加载C 然后检查D是否有权限访问C
 func (self *SymRef) resolveClassRef() {
-	d := self.cp.class
+	d := self.cp.class // TODO java.lang.Object ?
 	c := d.loader.LoadClass(self.className)
+	log.Println(d, c)
 	if !c.isAccessibleTo(d) {
 		panic("java.lang.IllegalAccessError")
 	}

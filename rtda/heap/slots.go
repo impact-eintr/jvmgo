@@ -20,7 +20,7 @@ func (self Slots) SetInt(index uint, val int32) {
 	self[index].num = val
 }
 
-func (self Slots) GetInt(index int) int32 {
+func (self Slots) GetInt(index uint) int32 {
 	return self[index].num
 }
 

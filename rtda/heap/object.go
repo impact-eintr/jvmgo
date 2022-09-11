@@ -21,5 +21,5 @@ func (self *Object) Fields() Slots {
 }
 
 func (self *Object) IsInstanceOf(class *Class) bool {
-	//TODO
+	return class.isAssignableFrom(self.class)
 }

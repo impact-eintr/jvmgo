@@ -1,10 +1,13 @@
 package rtda
 
+import "jvm/rtda/heap"
+
 type Frame struct {
 	lower *Frame
 	localVars LocalVars
 	operandStack *OperandStack
 	thread *Thread
+	method *heap.Method
 	nextPC int // the next instruction after the call
 }
 
@@ -26,6 +29,10 @@ func (self *Frame) OperandStack() *OperandStack {
 
 func (self *Frame) Thread() *Thread {
 	return self.thread
+}
+
+func (self *Frame) Method() *heap.Method {
+	return self.method
 }
 
 func (self *Frame) NextPC() int {
