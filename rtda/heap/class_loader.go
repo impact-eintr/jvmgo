@@ -33,8 +33,8 @@ func (self *ClassLoader) LoadClass(name string) *Class {
 }
 
 func (self *ClassLoader) loadNonArrayClass(name string) *Class {
-	data, entry := self.readClass(name)
-	class := self.defineClass(data)
+	data, entry := self.readClass(name) // 读取类信息
+	class := self.defineClass(data) // 解析类信息
 	link(class)
 	fmt.Printf("[Loaded %s from %s]\n", name, entry)
 	return class
@@ -50,7 +50,7 @@ func (self *ClassLoader) readClass(name string) ([]byte, classpath.Entry) {
 
 func (self *ClassLoader) defineClass(data []byte) *Class {
 	class := parseClass(data)
-	class.loader = self
+	class.loader = self // 绑定加载器
 	resolveSuperClass(class)
 	resolveInterfaces(class)
 	self.classMap[class.name] = class // 注册登记

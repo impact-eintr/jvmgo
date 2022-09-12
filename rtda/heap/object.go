@@ -8,7 +8,7 @@ type Object struct {
 func newObject(class *Class) *Object {
 	return &Object{
 		class: class,
-		fields: newSlots(class.instanceSlotCount),
+		fields: newSlots(class.instanceSlotCount), // 分配类实例内存
 	}
 }
 

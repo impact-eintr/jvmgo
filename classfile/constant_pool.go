@@ -8,6 +8,7 @@ func readConstantPool(reader *ClassReader) ConstantPool {
 	cpCount := int(reader.readUint16())
 	cp := make([]ConstantInfo, cpCount)
 
+	// 遍历类文件中的常量数据 逐个读取并保存在数组中
 	for i := 1;i < cpCount;i++ {
 		cp[i] = readConstantInfo(reader, cp)
 

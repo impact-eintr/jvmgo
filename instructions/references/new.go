@@ -21,6 +21,6 @@ func (self *NEW) Execute(frame *rtda.Frame) {
 	if class.IsInterface() || class.IsAbstract() {
 		panic("java.lang.InstantiationError")
 	}
-	ref := class.NewObject()
+	ref := class.NewObject() // 实例化
 	frame.OperandStack().PushRef(ref)
 }

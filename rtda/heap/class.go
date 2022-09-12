@@ -27,9 +27,9 @@ func newClass(cf *classfile.ClassFile) *Class {
 	class.name = cf.ClassName()
 	class.superClassName = cf.SuperClassName()
 	class.interfaceNames =cf.InterfaceNames()
-	class.constantPool = newConstantPool(class, cf.ConstantPool()) // 常量池赋值
-	class.fields = newFileds(class, cf.Fields())
-	class.methods = newMethods(class, cf.Methods())
+	class.constantPool = newConstantPool(class, cf.ConstantPool()) // 加载运行时常量池
+	class.fields = newFileds(class, cf.Fields()) // 加载运行时字段
+	class.methods = newMethods(class, cf.Methods()) // 加载运行时方法
 	return class
 }
 

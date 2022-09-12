@@ -15,6 +15,7 @@ type ConstantPool struct {
 	consts []Constant
 }
 
+// 从数据区常量加载为运行时常量
 func newConstantPool(class *Class, cfCp classfile.ConstantPool) *ConstantPool {
 	cpCount := len(cfCp)
 	consts := make([]Constant, cpCount)
