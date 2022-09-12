@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"jvm/classfile"
 	"jvm/classpath"
 	"jvm/rtda"
+	"jvm/rtda/heap"
+	"strings"
 )
 
 func main() {
@@ -22,32 +23,19 @@ func main() {
 
 func startJVM(cmd *Cmd) {
 	cp := classpath.Parse(cmd.XjreOption, cmd.cpOption)
+	classLoader := heap.NewClassLoader(cp)
 	fmt.Printf("classpath: %s class:%s args:%v\n",
 		cmd.cpOption, cmd.class, cmd.args)
 
 	className := strings.Replace(cmd.class, ".", "/", -1)
-	cf := loadClass(className, cp)
-	printClassInfo(cf)
-	mainMethod := getMainMethod(cf)
+	mainClass := classLoader.LoadClass(className)
+	mainMethod := mainClass.GetMainMethod()
+
 	if mainMethod != nil {
 		interpret(mainMethod)
 	} else {
 		fmt.Printf("Main method not found in class %s\n",cmd.class)
 	}
-}
-
-func loadClass(className string, cp *classpath.Classpath) *classfile.ClassFile {
-	classData, _, err := cp.ReadClass(className)
-	if err != nil {
-		panic(err)
-	}
-
-	cf, err := classfile.Parse(classData)
-	if err != nil {
-		panic(err)
-	}
-
-	return cf
 }
 
 // ch03

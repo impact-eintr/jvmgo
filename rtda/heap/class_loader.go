@@ -111,7 +111,7 @@ func calcInstanceFieldSlotIds(class *Class) {
 			}
 		}
 	}
-	class.staticSlotCount = slotId // how many slot we need
+	class.instanceSlotCount = slotId // how many slot we need
 }
 
 // calculate how many STATIC vars do we need

@@ -4,7 +4,6 @@ import (
 	"jvm/instructions/base"
 	"jvm/rtda"
 	"jvm/rtda/heap"
-	"log"
 )
 
 // Create new object
@@ -15,8 +14,7 @@ type NEW struct {
 func (self *NEW) Execute(frame *rtda.Frame) {
 	cp := frame.Method().Class().ConstantPool()
 	classRef := cp.GetConstant(self.Index).(*heap.ClassRef)
-	log.Println(classRef)
-	class := classRef.ResolvedClass()
+	class := classRef.ResolvedClass() // 用符号引用加载整个类信息
 	// TODO : init class
 
 	// interface and abstract class can be instantced
