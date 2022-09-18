@@ -40,7 +40,9 @@ func (self *MethodRef) resolveMethod() {
 }
 
 func lookupMethod(class *Class, name, descriptor string) *Method {
-	method := looupMethodInClass(class, name, descriptor)
+	method := LookupMethodInClass(class, name, descriptor)
 	if method == nil {
+		method = lookupMethodInterfaces(class.interfaces, name, descriptor)
 	}
+	return method
 }

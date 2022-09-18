@@ -19,6 +19,7 @@ type Class struct {
 	instanceSlotCount uint
 	staticSlotCount uint
 	staticVars Slots
+	initStarted bool
 }
 
 func newClass(cf *classfile.ClassFile) *Class {
@@ -65,22 +66,47 @@ func (self *Class) IsEnum() bool {
 	return 0 != self.accessFlags&ACC_ENUM
 }
 
+// getters
+func (self *Class) Name() string {
+	return self.name
+}
+
 func (self *Class) ConstantPool() *ConstantPool {
 	return self.constantPool
+}
+
+func (self *Class) Fields() []*Field {
+	return self.fields
+}
+
+func (self *Class) Methods() []*Method {
+	return self.methods
+}
+
+func (self *Class) SuperClass() *Class {
+	return self.superClass
 }
 
 func (self *Class) StaticVars() Slots {
 	return self.staticVars
 }
 
+func (self *Class) InitStarted() bool {
+	return self.initStarted
+}
+
+func (self *Class) StartInit() {
+	self.initStarted = true
+}
+
 // JVM 5.4.4
 // 检测是否可以被某个类访问:
 func (self *Class) isAccessibleTo(other *Class) bool {
 	return self.IsPublic() ||
-		self.getPackageName() == other.getPackageName()
+		self.GetPackageName() == other.GetPackageName()
 }
 
-func (self *Class) getPackageName() string {
+func (self *Class) GetPackageName() string {
 	if i := strings.LastIndex(self.name, "/"); i >= 0 {
 		return self.name[:i]
 	}
