@@ -32,7 +32,15 @@ func (self *Method) copyAttributes(cfMethod *classfile.MemberInfo) {
 
 func (self *Method) calcArgSlotCount() {
 	parsedDescriptor := parseMethodDescriptor(self.descriptor)
-	// TODO
+	for _, paramType := range parsedDescriptor.parameterTypes {
+		self.argSlotCount++
+		if paramType == "J" || paramType == "D" {
+			self.argSlotCount++
+		}
+	}
+	if !self.IsStatic() {
+		self.argSlotCount++ // this ref
+	}
 }
 
 func (self *Method) IsSynchronized() bool {

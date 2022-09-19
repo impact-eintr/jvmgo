@@ -9,6 +9,7 @@ import (
 // 类加载器
 type ClassLoader struct {
 	cp       *classpath.Classpath
+	verboseFlag bool
 	classMap map[string]*Class
 }
 
@@ -17,9 +18,10 @@ type ClassLoader struct {
 // 3 进行链接
 
 // 构造函数
-func NewClassLoader(cp *classpath.Classpath) *ClassLoader {
+func NewClassLoader(cp *classpath.Classpath, verboseFlag bool) *ClassLoader {
 	return &ClassLoader{
 		cp:       cp,
+		verboseFlag: verboseFlag,
 		classMap: make(map[string]*Class),
 	}
 }
@@ -36,7 +38,9 @@ func (self *ClassLoader) loadNonArrayClass(name string) *Class {
 	data, entry := self.readClass(name) // 读取类信息
 	class := self.defineClass(data) // 解析类信息
 	link(class)
-	fmt.Printf("[Loaded %s from %s]\n", name, entry)
+	if self.verboseFlag {
+		fmt.Printf("[Loaded %s from %s]\n", name, entry)
+	}
 	return class
 }
 
@@ -103,7 +107,7 @@ func calcInstanceFieldSlotIds(class *Class) {
 		slotId = class.superClass.instanceSlotCount
 	}
 	for _, field := range class.fields {
-		if field.IsStatic() {
+		if !field.IsStatic() {
 			field.slotId = slotId
 			slotId++
 			if field.isLongOrDouble() {

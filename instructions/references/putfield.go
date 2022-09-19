@@ -1,6 +1,7 @@
 package references
 
 import (
+	"fmt"
 	"jvm/instructions/base"
 	"jvm/rtda"
 	"jvm/rtda/heap"
@@ -25,6 +26,9 @@ func (self *PUT_FIELD) Execute(frame *rtda.Frame) {
 			panic("java.lang.IllegalAccessError")
 		}
 	}
+
+	fmt.Printf("%#v\n", currentClass)
+	fmt.Printf("%#v\n", currentMethod)
 
 	descriptor := field.Descriptor()
 	slotId := field.SlotId()
@@ -58,6 +62,10 @@ func (self *PUT_FIELD) Execute(frame *rtda.Frame) {
 		if ref == nil {
 			panic("java.lang.NullPointerException")
 		}
+		fmt.Println(val)
+		fmt.Println(ref)
+		fmt.Println(ref.Class())
+		fmt.Println(ref.Fields())
 		ref.Fields().SetDouble(slotId, val)
 	case 'L', '[':
 		val := stack.PopRef()

@@ -16,13 +16,13 @@ func newMethodRef(cp *ConstantPool, refInfo *classfile.ConstantMethodrefInfo) *M
 
 func (self *MethodRef) ResolvedMethod() *Method {
 	if self.method == nil {
-		self.resolveClassRef()
+		self.resolveMethodRef()
 	}
 	return self.method
 }
 
 // jvms 5.4.3.3
-func (self *MethodRef) resolveMethod() {
+func (self *MethodRef) resolveMethodRef() {
 	d := self.cp.class
 	c := self.ResolvedClass()
 	if c.IsInterface() {

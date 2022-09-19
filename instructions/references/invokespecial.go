@@ -12,11 +12,11 @@ type INVOKE_SPECIAL struct{ base.Index16Instruction }
 
 // hack!
 func (self *INVOKE_SPECIAL) Execute(frame *rtda.Frame) {
-	currentClass := frame.Method().Class() // 当前类
+	currentClass := frame.Method().Class() // 当前类 调用resolvedClass的类
 	cp := currentClass.ConstantPool() // 当前常量池
 	methodRef := cp.GetConstant(self.Index).(*heap.MethodRef) // 方法符号引用
-	resolvedClass := methodRef.ResolvedClass() // 解析类符号引用
-	resolvedMethod := methodRef.ResolvedMethod() // 解析方法符号引用
+	resolvedClass := methodRef.ResolvedClass() // 解析类符号引用 获得一个类
+	resolvedMethod := methodRef.ResolvedMethod() // 解析方法符号引用 获得一个方法
 	if resolvedMethod.Name() == "<init>" && resolvedMethod.Class() != resolvedClass {
 		panic("java.lang.NoSuchMethodError")
 	}
@@ -24,7 +24,7 @@ func (self *INVOKE_SPECIAL) Execute(frame *rtda.Frame) {
 		panic("java.lang.IncompatibleClassChangeError")
 	}
 
-	// pop "this" ref
+	//get "this" ref of resolvedMethod
 	ref := frame.OperandStack().GetRefFromTop(resolvedMethod.ArgSlotCount() - 1)
 	if ref == nil {
 		panic("java.lang.NullPointerException")
@@ -36,6 +36,7 @@ func (self *INVOKE_SPECIAL) Execute(frame *rtda.Frame) {
 		resolvedMethod.Class().GetPackageName() != currentClass.GetPackageName() &&
 		ref.Class() != currentClass &&
 		!ref.Class().IsSubClassOf(currentClass) {
+
 		panic("java.lang.IllegalAccessError")
 	}
 

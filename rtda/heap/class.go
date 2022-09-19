@@ -19,7 +19,7 @@ type Class struct {
 	instanceSlotCount uint
 	staticSlotCount uint
 	staticVars Slots
-	initStarted bool
+	initStarted bool // 表示类的<clinit>方法是否已经开始执行
 }
 
 func newClass(cf *classfile.ClassFile) *Class {
@@ -115,6 +115,10 @@ func (self *Class) GetPackageName() string {
 
 func (self *Class) GetMainMethod() *Method {
 	return self.getStaticMethod("main", "([Ljava/lang/String;)V")
+}
+
+func (self *Class) GetClinitMethod() *Method {
+	return self.getStaticMethod("<clinit>", "()V")
 }
 
 func (self *Class) getStaticMethod(name, descriptor string) *Method {

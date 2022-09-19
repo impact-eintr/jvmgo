@@ -44,6 +44,7 @@ func (self *Frame) SetNextPC(nextPC int) {
 	self.nextPC = nextPC
 }
 
+// 指令执行到一半 PC已经指向下一条指令 这里使之重新指回来
 func (self *Frame) RevertNextPC() {
 	self.nextPC = self.thread.pc
 }

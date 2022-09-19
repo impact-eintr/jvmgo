@@ -20,7 +20,9 @@ func (self *INVOKE_STATIC) Execute(frame *rtda.Frame) {
 
 	class := resolvedMethod.Class()
 	if !class.InitStarted() {
-		// TODO init class
+		frame.RevertNextPC()
+		base.InitClass(frame.Thread(), class)
+		return
 	}
 	base.InvokeMethod(frame, resolvedMethod)
 }

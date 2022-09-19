@@ -23,7 +23,7 @@ func main() {
 
 func startJVM(cmd *Cmd) {
 	cp := classpath.Parse(cmd.XjreOption, cmd.cpOption)
-	classLoader := heap.NewClassLoader(cp)
+	classLoader := heap.NewClassLoader(cp, cmd.verboseInstFlag)
 	fmt.Printf("classpath: %s class:%s args:%v\n",
 		cmd.cpOption, cmd.class, cmd.args)
 
@@ -32,7 +32,7 @@ func startJVM(cmd *Cmd) {
 	mainMethod := mainClass.GetMainMethod()
 
 	if mainMethod != nil {
-		interpret(mainMethod)
+		interpret(mainMethod, cmd.verboseInstFlag)
 	} else {
 		fmt.Printf("Main method not found in class %s\n",cmd.class)
 	}
