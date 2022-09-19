@@ -2,13 +2,13 @@ package heap
 
 type Object struct {
 	class *Class
-	fields Slots
+	data interface{}
 }
 
 func newObject(class *Class) *Object {
 	return &Object{
 		class: class,
-		fields: newSlots(class.instanceSlotCount), // 分配类实例内存
+		data: newSlots(class.instanceSlotCount), // 分配类实例内存
 	}
 }
 
@@ -17,9 +17,11 @@ func (self *Object) Class() *Class {
 }
 
 func (self *Object) Fields() Slots {
-	return self.fields
+	return self.data.(Slots)
 }
 
 func (self *Object) IsInstanceOf(class *Class) bool {
 	return class.isAssignableFrom(self.class)
 }
+
+// reflection

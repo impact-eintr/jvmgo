@@ -31,7 +31,27 @@ func (self *ClassLoader) LoadClass(name string) *Class {
 		// alreay loaded
 		return class
 	}
+	if name[0] == '[' {
+		return self.loadNonArrayClass(name)
+	}
 	return self.loadNonArrayClass(name)
+}
+
+func (self *ClassLoader) loadArrayClass(name string) *Class {
+	// int[]{1, 2, 3, 4} 这就是一个数组类 [I
+	class := &Class{
+		accessFlags: ACC_PUBLIC,
+		name: name,
+		loader: self,
+		initStarted: true, // 数组类不需要初始化
+		superClass: self.LoadClass("java/lang/Object"),
+		interfaces: []*Class{ // 实现了 以下两个类
+			self.LoadClass("java/lang/Cloneable"),
+			self.LoadClass("java/io/Serializable"),
+		},
+	}
+	self.classMap[name] = class
+	return class
 }
 
 func (self *ClassLoader) loadNonArrayClass(name string) *Class {
