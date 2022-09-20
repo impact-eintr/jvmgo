@@ -32,7 +32,7 @@ func (self *ClassLoader) LoadClass(name string) *Class {
 		return class
 	}
 	if name[0] == '[' {
-		return self.loadNonArrayClass(name)
+		return self.loadArrayClass(name)
 	}
 	return self.loadNonArrayClass(name)
 }
