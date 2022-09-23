@@ -24,8 +24,6 @@ func main() {
 func startJVM(cmd *Cmd) {
 	cp := classpath.Parse(cmd.XjreOption, cmd.cpOption)
 	classLoader := heap.NewClassLoader(cp, cmd.verboseInstFlag)
-	fmt.Printf("classpath: %s class:%s args:%v\n",
-		cmd.cpOption, cmd.class, cmd.args)
 
 	className := strings.Replace(cmd.class, ".", "/", -1)
 	mainClass := classLoader.LoadClass(className)
