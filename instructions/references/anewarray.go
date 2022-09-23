@@ -1,7 +1,6 @@
 package references
 
 import (
-	"fmt"
 	"jvm/instructions/base"
 	"jvm/rtda"
 	"jvm/rtda/heap"

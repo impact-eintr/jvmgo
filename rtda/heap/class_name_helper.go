@@ -1,9 +1,5 @@
 package heap
 
-import (
-	"fmt"
-)
-
 var primitiveTypes = map[string]string{
 	"void":    "V",
 	"boolean": "Z",

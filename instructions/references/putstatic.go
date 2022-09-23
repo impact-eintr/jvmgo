@@ -32,7 +32,7 @@ func (self *PUT_STATIC) Execute(frame *rtda.Frame) {
 	// 如果是final字段,则实际操作的是静态常量,只能在类初始化方法中给它赋值
 	// 类初始化方法由编译器生成,名字是<clinit>
 	if field.IsFinal() {
-		if currentClass != class || currentMethod.Name() != "<clinit" {
+		if currentClass != class || currentMethod.Name() != "<clinit>" {
 			panic("java.lang.IllegalAccessError")
 		}
 	}
