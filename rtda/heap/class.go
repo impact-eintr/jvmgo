@@ -6,20 +6,21 @@ import (
 )
 
 type Class struct {
-	accessFlags uint16
-	name string // thisClassName
-	superClassName string
-	interfaceNames []string
-	constantPool *ConstantPool
-	fields []*Field
-	methods []*Method
-	loader *ClassLoader
-	superClass *Class
-	interfaces []*Class
+	accessFlags       uint16
+	name              string // thisClassName
+	superClassName    string
+	interfaceNames    []string
+	constantPool      *ConstantPool
+	fields            []*Field
+	methods           []*Method
+	loader            *ClassLoader
+	superClass        *Class
+	interfaces        []*Class
 	instanceSlotCount uint
-	staticSlotCount uint
-	staticVars Slots
-	initStarted bool // 表示类的<clinit>方法是否已经开始执行
+	staticSlotCount   uint
+	staticVars        Slots
+	initStarted       bool // 表示类的<clinit>方法是否已经开始执行
+	jClass            *Object
 }
 
 func newClass(cf *classfile.ClassFile) *Class {
@@ -27,10 +28,10 @@ func newClass(cf *classfile.ClassFile) *Class {
 	class.accessFlags = cf.AccessFlags()
 	class.name = cf.ClassName()
 	class.superClassName = cf.SuperClassName()
-	class.interfaceNames =cf.InterfaceNames()
+	class.interfaceNames = cf.InterfaceNames()
 	class.constantPool = newConstantPool(class, cf.ConstantPool()) // 加载运行时常量池
-	class.fields = newFileds(class, cf.Fields()) // 加载运行时字段
-	class.methods = newMethods(class, cf.Methods()) // 加载运行时方法
+	class.fields = newFileds(class, cf.Fields())                   // 加载运行时字段
+	class.methods = newMethods(class, cf.Methods())                // 加载运行时方法
 	return class
 }
 
@@ -97,6 +98,10 @@ func (self *Class) StaticVars() Slots {
 
 func (self *Class) InitStarted() bool {
 	return self.initStarted
+}
+
+func (self *Class) JClass() *Object {
+	return self.jClass
 }
 
 func (self *Class) StartInit() {
