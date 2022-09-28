@@ -14,6 +14,7 @@ func JString(loader *ClassLoader, goStr string) *Object {
 	jChars := &Object{
 		loader.LoadClass("[C"),
 		chars,
+		nil,
 	}
 
 	jStr := loader.LoadClass("java/lang/String").NewObject()

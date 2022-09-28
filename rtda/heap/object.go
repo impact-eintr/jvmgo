@@ -3,6 +3,7 @@ package heap
 type Object struct {
 	class *Class
 	data interface{}
+	extra interface{} // 记录Object结构体实例的额外信息
 }
 
 func newObject(class *Class) *Object {
@@ -18,6 +19,14 @@ func (self *Object) Class() *Class {
 
 func (self *Object) Fields() Slots {
 	return self.data.(Slots)
+}
+
+func (self *Object) Extra() interface{} {
+	return self.extra
+}
+
+func (self *Object) SetExtra(extra interface{}) {
+	self.extra = extra
 }
 
 func (self *Object) IsInstanceOf(class *Class) bool {

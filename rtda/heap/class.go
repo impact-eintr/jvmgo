@@ -174,3 +174,7 @@ func (self *Class) ArrayClass() *Class {
 	arrayClassName := getArrayClassName(self.name)
 	return self.loader.LoadClass(arrayClassName)
 }
+
+func (self *Class) JavaName() string {
+	return strings.Replace(self.name, "/", ".", -1)
+}
