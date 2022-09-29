@@ -27,9 +27,6 @@ func (self *PUT_FIELD) Execute(frame *rtda.Frame) {
 		}
 	}
 
-	fmt.Printf("%#v\n", currentClass)
-	fmt.Printf("%#v\n", currentMethod)
-
 	descriptor := field.Descriptor()
 	slotId := field.SlotId()
 	stack := frame.OperandStack()

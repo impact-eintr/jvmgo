@@ -10,7 +10,7 @@ const jlClass = "java/lang/Class"
 
 func init() {
   native.Register(jlClass, "getPrimitiveClass",
-		"(Ljava/lang/String;)Ljava/lang/Class;  ", getPrimitiveClass)
+		"(Ljava/lang/String;)Ljava/lang/Class;", getPrimitiveClass)
 	native.Register(jlClass, "getName0", "()Ljava/lang/String;", getName0)
 	native.Register(jlClass, "desiredAssertionStatus0",
 		"(Ljava/lang/Class;)Z", desiredAssertionStatus0)
@@ -53,11 +53,21 @@ func desiredAssertionStatus0(frame *rtda.Frame) {
 // public native boolean isInterface();
 // ()Z
 func isInterface(frame *rtda.Frame)  {
+	vars := frame.LocalVars()
+	this := vars.GetThis()
+	class := this.Extra().(*heap.Class)
 
+	stack := frame.OperandStack()
+	stack.PushBoolean(class.IsInterface())
 }
 
 // public native boolean isPrimitive();
 // ()Z
 func isPrimitive(frame *rtda.Frame) {
+	vars := frame.LocalVars()
+	this := vars.GetThis()
+	class := this.Extra().(*heap.Class)
 
+	stack := frame.OperandStack()
+	stack.PushBoolean(class.IsPrimitive())
 }
