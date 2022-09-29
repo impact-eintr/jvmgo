@@ -40,3 +40,14 @@ func utf16ToString(s []uint16) string {
 	runes := utf16.Decode(s)
 	return string(runes)
 }
+
+// TODO
+func InternString(jStr *Object) *Object {
+	goStr := GoString(jStr)
+	if internedStr, ok := internedStrings[goStr]; ok {
+		return internedStr
+	}
+
+	internedStrings[goStr] = jStr
+	return jStr
+}

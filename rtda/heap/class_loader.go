@@ -71,8 +71,8 @@ func (self *ClassLoader) LoadClass(name string) (class *Class) {
 		class = self.loadNonArrayClass(name)
 	}
 
-	// 任意一个class加载时都会关联java.lang.class
-	// 使之jClass为java.lang.class的一个实例
+	// 任意一个class加载时都会关联java.lang.Class
+	// 使之jClass为java.lang.Class的一个实例
 	// 使之jClass.extra 为其自身
 	if jlClassClass, ok := self.classMap["java/lang/Class"]; ok {
 		class.jClass = jlClassClass.NewObject()
