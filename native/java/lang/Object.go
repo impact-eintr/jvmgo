@@ -40,5 +40,5 @@ func clone(frame *rtda.Frame) {
 		panic("java.lang.CloneNotSupportedException")
 	}
 
-	//frame.OperandStack().PushRef(this.Clone())
+	frame.OperandStack().PushRef(this.Clone())
 }
