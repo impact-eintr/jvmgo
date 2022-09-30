@@ -201,6 +201,10 @@ func (self *Class) GetInstanceMethod(name, descriptor string) *Method {
 	return self.getMethod(name, descriptor, false)
 }
 
+func (self *Class) GetStaticMethod(name, descriptor string) *Method {
+	return self.getMethod(name, descriptor, true)
+}
+
 func (self *Class) GetRefVar(fieldName, fieldDescriptor string) *Object {
 	field := self.getField(fieldName, fieldDescriptor, true)
 	return self.staticVars.GetRef(field.slotId)
