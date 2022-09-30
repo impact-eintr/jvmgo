@@ -13,6 +13,7 @@ type Class struct {
 	constantPool      *ConstantPool
 	fields            []*Field
 	methods           []*Method
+	sourceFile        string
 	loader            *ClassLoader
 	superClass        *Class
 	interfaces        []*Class
@@ -32,7 +33,15 @@ func newClass(cf *classfile.ClassFile) *Class {
 	class.constantPool = newConstantPool(class, cf.ConstantPool()) // 加载运行时常量池
 	class.fields = newFileds(class, cf.Fields())                   // 加载运行时字段
 	class.methods = newMethods(class, cf.Methods())                // 加载运行时方法
+	class.sourceFile = getSourceFile(cf)
 	return class
+}
+
+func getSourceFile(cf *classfile.ClassFile) string {
+	if sfAttr := cf.SourceFileAttribute(); sfAttr != nil {
+		return sfAttr.FileName()
+	}
+	return "Unknown" // TODO
 }
 
 func (self *Class) IsPublic() bool {
@@ -82,6 +91,10 @@ func (self *Class) Fields() []*Field {
 
 func (self *Class) Methods() []*Method {
 	return self.methods
+}
+
+func (self *Class) SourceFile() string {
+	return self.sourceFile
 }
 
 func (self *Class) Loader() *ClassLoader {

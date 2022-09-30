@@ -27,7 +27,7 @@ type CodeAttribute struct {
 	maxLocals uint16 // 局部变量表大小
 	code []byte
 	exceptionTable []*ExceptionTableEntry // 异常处理表
-	attrbutes []AttributeInfo
+	attributes []AttributeInfo
 }
 
 func (self *CodeAttribute) readInfo(reader *ClassReader) {
@@ -36,7 +36,7 @@ func (self *CodeAttribute) readInfo(reader *ClassReader) {
 	codeLength := reader.readUint32()
 	self.code = reader.readBytes(codeLength)
 	self.exceptionTable = readExceptionTable(reader)
-	self.attrbutes = readAttributes(reader, self.cp)
+	self.attributes = readAttributes(reader, self.cp)
 }
 
 func (self *CodeAttribute) MaxStack() uint {
@@ -53,6 +53,16 @@ func (self *CodeAttribute) Code() []byte {
 
 func (self *CodeAttribute) ExceptionTable() []*ExceptionTableEntry {
 	return self.exceptionTable
+}
+
+func (self *CodeAttribute) LineNumberTableAttribute() *LineNumberTableAttribute {
+	for _, attrInfo := range self.attributes {
+		switch attrInfo.(type) {
+		case *LineNumberTableAttribute:
+			return attrInfo.(*LineNumberTableAttribute)
+		}
+	}
+	return nil
 }
 
 type ExceptionTableEntry struct {
