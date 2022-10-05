@@ -22,6 +22,8 @@ Java虚拟机可以操作两类数据:基本类型(primitive type)和引用类�
 
 接下来，我们按照函数的执行顺序追踪一下JVM的实现，我们需要向计算机一样压很多层栈。当然我会保存一些上下文，免得阅读时读到一半又要跳回来。
 
+代码详见[https://github.com/impact-eintr/jvmgo](https://github.com/impact-eintr/jvmgo)
+
 ## 主函数
 
 ``` go
@@ -1237,10 +1239,15 @@ func newFrame(thread *Thread, method *heap.Method) *Frame {
 }
 ```
 
-这里的Frame是一个链表的节点，我们使用链表来模拟一个Stack. 每个Frame就是一个函数栈帧，函数栈帧中又包含了局部变量
+这里的Frame是一个链表的节点，我们使用链表来模拟一个Stack. 每个Frame就是一个函数栈帧，函数栈帧中又包含了局部变量和操作数栈。
 
+PushFrame相当于将当前函数栈帧压入线程栈顶，这样执行时就会操作该栈内的数据
+
+`interpret`函数在下一节进行解说
 
 ### 执行字节码
+
+在class文件文件中会有Code AttributeInfo 其中包含了jvm字节码，通过解析这些字节码，翻译成对应的指令，再逐步执行这些我们已经实现好了的指令，就实现了一个有效的虚拟机
 
 ``` go
 func (self *JVM) start() {
@@ -1264,6 +1271,594 @@ func (self *JVM) execMain() {
 	interpret(self.mainThread, self.cmd.verboseInstFlag)
 }
 ```
+
+执行Main方法时，先加载当前主类，然后找到main方法，为main方法新建一个函数栈帧，设置函数本地变量表的第0位为cli传入的参数
+
+``` go
+func interpret(thread *rtda.Thread, logInst bool) {
+	defer catchErr(thread)
+	loop(thread, logInst)
+}
+
+func catchErr(thread *rtda.Thread) {
+	if r := recover(); r != nil {
+		logFrames(thread)
+		panic(r)
+	}
+}
+
+func loop(thread *rtda.Thread, logInst bool) {
+	reader := &base.BytecodeReader{}
+	for {
+		frame := thread.CurrentFrame() // 当前函数栈帧
+		pc := frame.NextPC()
+		thread.SetPC(pc)
+
+		// decode
+		reader.Reset(frame.Method().Code(), pc)
+		opcode := reader.ReadUint8()
+		inst := instructions.NewInstruction(opcode)
+		inst.FetchOperands(reader)
+		frame.SetNextPC(reader.PC())
+
+		if logInst {
+			logInstruction(frame, inst)
+		}
+
+		// execute
+		inst.Execute(frame)
+		if thread.IsStackEmpty() {
+			break
+		}
+	}
+}
+```
+
+
+当loop循环开始后，位于mainThread栈顶的是mainFrame，向后移动PC后，构造Instruction对象，开始解码当前函数的的字节码，然后执行该指令的Execute()
+
+``` go
+
+func NewInstruction(opcode byte) base.Instruction {
+	switch opcode {
+	case 0x00:
+		return nop
+    // ... 很多指令 200条左右
+	case 0xbb:
+		return &NEW{}
+	case 0xbc:
+		return &NEW_ARRAY{}
+	case 0xbd:
+		return &ANEW_ARRAY{}
+	case 0xbe:
+		return arraylength
+	case 0xbf:
+		return athrow
+	case 0xc0:
+		return &CHECK_CAST{}
+	case 0xc1:
+		return &INSTANCE_OF{}
+	case 0xc4:
+		return &WIDE{}
+	case 0xc5:
+		return &MULTI_ANEW_ARRAY{}
+	case 0xc6:
+		return &IFNULL{}
+	case 0xc7:
+		return &IFNONNULL{}
+	case 0xc8:
+		return &GOTO_W{}
+	case 0xfe:
+		return invoke_native
+	default:
+		panic(fmt.Errorf("Unsupported opcode: 0x%x!", opcode))
+	}
+}
+```
+
+### 字节码指令
+
+``` go
+type Instruction interface {
+	FetchOperands(reader *BytecodeReader)
+	Execute(frame *rtda.Frame)
+}
+```
+
+#### NOP
+
+``` go
+type NOP struct {
+	base.NoOperandsInstruction
+}
+
+func (self *NOP) Execute(frame *rtda.Frame) {
+	// really do nothing
+}
+```
+
+#### XCONST_X系列
+
+``` go
+// Push null
+type ACONST_NULL struct {
+	base.NoOperandsInstruction
+}
+
+func (self *ACONST_NULL) Execute(frame *rtda.Frame) {
+	frame.OperandStack().PushRef(nil)
+}
+```
+
+
+``` go
+// Push float
+type FCONST_0 struct{ base.NoOperandsInstruction }
+
+func (self *FCONST_0) Execute(frame *rtda.Frame) {
+	frame.OperandStack().PushFloat(0.0)
+}
+
+type FCONST_1 struct{ base.NoOperandsInstruction }
+
+func (self *FCONST_1) Execute(frame *rtda.Frame) {
+	frame.OperandStack().PushFloat(1.0)
+}
+
+type FCONST_2 struct{ base.NoOperandsInstruction }
+
+func (self *FCONST_2) Execute(frame *rtda.Frame) {
+	frame.OperandStack().PushFloat(2.0)
+}
+```
+
+
+#### BIPUSH SIPUSH
+
+``` go
+// 从操作数中获取一个byte型整数 扩展成int型 然后推入栈顶
+type BIPUSH struct {
+	val int8
+}
+
+func (self *BIPUSH) FetchOperands(reader *base.BytecodeReader) {
+	self.val = reader.ReadInt8()
+}
+
+func (self *BIPUSH) Execute(frame *rtda.Frame) {
+	i := int32(self.val)
+	frame.OperandStack().PushInt(i)
+}
+
+
+// 从操作数中获取一个short型整数 扩展成int型 然后推入栈顶
+type SIPUSH struct {
+	val int16
+}
+
+func (self *SIPUSH) FetchOperands(reader *base.BytecodeReader) {
+	self.val = reader.ReadInt16()
+}
+
+func (self *SIPUSH) Execute(frame *rtda.Frame) {
+	i := int32(self.val)
+	frame.OperandStack().PushInt(i)
+}
+```
+
+
+#### LDC系列
+
+从与运行时常量池加载变量
+
+``` go
+// ldc系列指令从运行时常量池中加载常量值,并把它推入操作数栈
+//
+// ldc系列指令属于常量类指令,共3条。
+//
+// 其中ldc和ldc_w指令用于加载int、float和字符串常量,
+// java.lang.Class实例或者MethodType和MethodHandle实例。
+//
+// ldc2_w指令用于加载long和double常量。
+//
+// ldc 和ldc_w指令的区别仅在于操作数的宽度。
+
+// Push item from run-time constant pool
+type LDC struct{ base.Index8Instruction }
+
+func (self *LDC) Execute(frame *rtda.Frame) {
+	_ldc(frame, self.Index)
+}
+
+func _ldc(frame *rtda.Frame, index uint) {
+	stack := frame.OperandStack()
+	class := frame.Method().Class()
+	c := class.ConstantPool().GetConstant(index)
+
+	switch c.(type) {
+	case int32:
+		stack.PushInt(c.(int32))
+	case float32:
+		stack.PushFloat(c.(float32))
+	case string:
+		internedStr := heap.JString(class.Loader(), c.(string))
+		stack.PushRef(internedStr)
+	case *heap.ClassRef:
+		classRef := c.(*heap.ClassRef) // 常量池的常量是类引用
+		classObj := classRef.ResolvedClass().JClass() // 解析类引用
+		stack.PushRef(classObj) // 将类对象入栈
+	// case MethodType, MethodHandle
+	default:
+		panic("todo: ldc!")
+	}
+}
+
+```
+
+
+#### XLOAD_X系列
+
+从局部变量加载变量
+
+``` go
+// iload 指令的索引来自于操作数
+type ILOAD struct {
+	base.Index8Instruction
+}
+
+func (self *ILOAD) Execute(frame *rtda.Frame) {
+	_iload(frame, self.Index)
+}
+
+// 其余指令的索引隐含于操作码中
+type ILOAD_0 struct {
+	base.NoOperandsInstruction
+}
+func (self *ILOAD_0) Execute(frame *rtda.Frame) {
+	_iload(frame, 0)
+}
+// 加载指令从局部变量表中获取变量 然后推入操作数栈顶
+func _iload(frame *rtda.Frame, index uint) {
+	val := frame.LocalVars().GetInt(index)
+	frame.OperandStack().PushInt(val)
+}
+```
+
+#### XSTORE_X系列
+
+``` go
+// Store int into local variable
+type ISTORE struct{ base.Index8Instruction }
+
+func (self *ISTORE) Execute(frame *rtda.Frame) {
+	_istore(frame, uint(self.Index))
+}
+
+type ISTORE_0 struct{ base.NoOperandsInstruction }
+
+func (self *ISTORE_0) Execute(frame *rtda.Frame) {
+	_istore(frame, 0)
+}
+
+// 存储指令把变量从操作数栈顶弹出 然后存入局部变量表
+func _istore(frame *rtda.Frame, index uint) {
+	val := frame.OperandStack().PopInt()
+	frame.LocalVars().SetInt(index, val)
+}
+```
+
+
+#### XALOAD系列
+
+``` go
+// Load reference from array
+type AALOAD struct{ base.NoOperandsInstruction }
+
+func (self *AALOAD) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	index := stack.PopInt()
+	arrRef := stack.PopRef()
+
+    // 非空检测
+	checkNotNil(arrRef)
+	refs := arrRef.Refs()
+	checkIndex(len(refs), index)
+	stack.PushRef(refs[index])
+}
+```
+
+#### XSTORE系列
+
+``` go
+// Store into reference array
+type AASTORE struct{ base.NoOperandsInstruction }
+
+func (self *AASTORE) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	ref := stack.PopRef()
+	index := stack.PopInt()
+	arrRef := stack.PopRef()
+
+    // 非空检测
+	checkNotNil(arrRef)
+	refs := arrRef.Refs()
+	checkIndex(len(refs), index)
+	refs[index] = ref
+}
+```
+
+#### POP指令
+
+``` go
+type POP struct {
+	base.NoOperandsInstruction
+}
+
+// pop int float ...
+func (self *POP) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	stack.PopSlot()
+}
+
+type POP2 struct {
+	base.NoOperandsInstruction
+}
+
+// pop double long
+func (self *POP2) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	stack.PopSlot()
+	stack.PopSlot()
+}
+
+```
+
+
+#### DUP系列
+
+``` go
+type DUP struct {
+	base.NoOperandsInstruction
+}
+
+// dup 指令复制栈顶的单个变量
+func (self *DUP) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	slot := stack.PopSlot()
+	stack.PushSlot(slot)
+	stack.PushSlot(slot)
+}
+
+// dup 指令复制栈顶的两个变量
+type DUP2 struct {
+	base.NoOperandsInstruction
+}
+
+func (self *DUP2) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	slot1 := stack.PopSlot()
+	slot2 := stack.PopSlot()
+	stack.PushSlot(slot2)
+	stack.PushSlot(slot1)
+	stack.PushSlot(slot2)
+	stack.PushSlot(slot1)
+}
+```
+
+
+#### SWAP指令
+
+``` go
+type SWAP struct {
+	base.NoOperandsInstruction
+}
+
+// 交换栈顶的两个变量
+func (self *SWAP) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	slot1 := stack.PopSlot()
+	slot2 := stack.PopSlot()
+	stack.PushSlot(slot1)
+	stack.PushSlot(slot2)
+}
+```
+
+
+
+#### ADD系列
+
+``` go
+// Int Add
+type IADD struct {
+	base.NoOperandsInstruction
+}
+
+func (self *IADD) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	result := v1 + v2
+	stack.PushInt(result)
+}
+```
+
+#### SUB系列
+
+``` go
+// Subtract int
+type ISUB struct{ base.NoOperandsInstruction }
+
+func (self *ISUB) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	result := v1 - v2
+	stack.PushInt(result)
+}
+
+```
+
+#### MULT系列
+
+``` go
+// Multiply int
+type IMUL struct{ base.NoOperandsInstruction }
+
+func (self *IMUL) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	result := v1 * v2
+	stack.PushInt(result)
+}
+```
+
+#### DIV系列
+
+``` go
+// Divide int
+type IDIV struct{ base.NoOperandsInstruction }
+
+func (self *IDIV) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	if v2 == 0 {
+		panic("java.lang.ArithmeticException: / by zero")
+	}
+
+	result := v1 / v2
+	stack.PushInt(result)
+}
+```
+
+
+#### REM系列 (mod)
+
+``` go
+// Remainder Int
+type IREM struct {
+	base.NoOperandsInstruction
+}
+
+func (self *IREM) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	if v2 == 0 {
+		panic("java.lang.ArithmeticException: / by zero")
+	}
+	reslut := v1 % v2
+	stack.PushInt(reslut)
+}
+```
+
+#### NEG系列
+
+``` go
+// Negate int
+type INEG struct{ base.NoOperandsInstruction }
+
+func (self *INEG) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	val := stack.PopInt()
+	stack.PushInt(-val)
+}
+```
+
+#### 各种位移
+
+``` go
+// Shitf Left Int
+type ISHL struct {
+	base.NoOperandsInstruction
+}
+
+func (self *ISHL) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	s := uint32(v2) & 0x1f // 取最后五位 2**5 = 32 足以表示位移
+	result := v1 << s
+	stack.PushInt(result)
+}
+
+// Int 算术右移 有符号右移
+type ISHR struct {
+	base.NoOperandsInstruction
+}
+
+func (self *ISHR) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	s := uint32(v2) & 0x1f
+	result := v1 >> s
+	stack.PushInt(result)
+}
+
+// 逻辑右移 无符号右移
+type IUSHR struct {
+	base.NoOperandsInstruction
+}
+
+func (self *IUSHR) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	s := uint32(v2) & 0x1f
+	result := int32((uint32(v1) >> s))
+	stack.PushInt(result)
+}
+
+// Shift Left Long
+type LSHL struct {
+	base.NoOperandsInstruction
+}
+
+func (self *LSHL) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	s := uint32(v2) & 0x3f
+	result := v1 << s
+	stack.PushInt(result)
+}
+
+// Shift Right Long
+type LSHR struct {
+	base.NoOperandsInstruction
+}
+
+func (self *LSHR) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	s := uint32(v2) & 0x3f
+	result := v1 >> s
+	stack.PushInt(result)
+}
+
+// Long 算术右移 有符号右移
+type LUSHR struct {
+	base.NoOperandsInstruction
+}
+
+func (self *LUSHR) Execute(frame *rtda.Frame) {
+	stack := frame.OperandStack()
+	v2 := stack.PopInt()
+	v1 := stack.PopInt()
+	s := uint32(v2) & 0x3f // 0x0011 1111 2**6=64
+	result := int64(uint64(v1) >> s)
+	stack.PushLong(result)
+}
+
+
+```
+
+
+
+
 
 
 

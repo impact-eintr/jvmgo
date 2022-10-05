@@ -5,7 +5,6 @@ import (
 	"jvm/rtda"
 )
 
-
 type NOP struct {
 	base.NoOperandsInstruction
 }

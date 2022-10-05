@@ -43,7 +43,7 @@ func (self *ILOAD_3) Execute(frame *rtda.Frame) {
 	_iload(frame, 3)
 }
 
-// 加载指令总局部变量表中获取变量 然后推入操作数栈顶
+// 加载指令从局部变量表中获取变量 然后推入操作数栈顶
 func _iload(frame *rtda.Frame, index uint) {
 	val := frame.LocalVars().GetInt(index)
 	frame.OperandStack().PushInt(val)
