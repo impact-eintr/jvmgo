@@ -22,18 +22,18 @@ func newZipEntry(path string) *ZipEntry {
 
 func (self *ZipEntry) readClass(className string) ([]byte, Entry, error) {
 	if self.zipRC == nil {
-		err := self.openJar()
+		err := self.openJar() // 打开jar包
 		if err != nil {
 			return nil, nil, errors.New("class not found: " + className)
 		}
 	}
 
-	classFile := self.findClass(className)
+	classFile := self.findClass(className) // 从已经打开的jar包中寻找对应的class文件
 	if classFile == nil {
 		return nil, nil, errors.New("class not found: " + className)
 	}
 
-	data, err := readClass(classFile)
+	data, err := readClass(classFile) // 读取class文件的内容
 	return data, self, err
 }
 

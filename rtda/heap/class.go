@@ -6,22 +6,22 @@ import (
 )
 
 type Class struct {
-	accessFlags       uint16
+	accessFlags       uint16 // 访问级别
 	name              string // thisClassName
-	superClassName    string
-	interfaceNames    []string
-	constantPool      *ConstantPool
-	fields            []*Field
-	methods           []*Method
-	sourceFile        string
-	loader            *ClassLoader
-	superClass        *Class
-	interfaces        []*Class
-	instanceSlotCount uint
-	staticSlotCount   uint
-	staticVars        Slots
+	superClassName    string // 父类名
+	interfaceNames    []string // 实现的接口名
+	constantPool      *ConstantPool // 运行时常量池指针
+	fields            []*Field // 类字段
+	methods           []*Method // 类方法
+	sourceFile        string // 源文件
+	loader            *ClassLoader // 类加载器
+	superClass        *Class // 父类指针
+	interfaces        []*Class // 实现的接口表
+	instanceSlotCount uint // 运行时数据占用的槽量
+	staticSlotCount   uint // 静态数据占用的槽量
+	staticVars        Slots // 静态数据
 	initStarted       bool // 表示类的<clinit>方法是否已经开始执行
-	jClass            *Object
+	jClass            *Object // java.lang.Class的变量引用
 }
 
 func newClass(cf *classfile.ClassFile) *Class {

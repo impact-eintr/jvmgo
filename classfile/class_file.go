@@ -24,7 +24,7 @@ ClassFile {
 */
 
 type ClassFile struct {
-	// magic uint32
+	magic uint32
 	minorVersion uint16
 	majorVersion uint16
 	constantPool ConstantPool // 常量池
@@ -72,6 +72,7 @@ func (self *ClassFile) readAndCheckMagic(reader *ClassReader) {
   if magic != 0xCAFEBABE {
     panic("java.lang.ClassFormatError: magic!")
   }
+	self.magic = magic
 }
 
 func (self *ClassFile) readAndCheckVersion(reader *ClassReader) {

@@ -10,6 +10,7 @@ func newWildcardEntry(path string) CompositeEntry {
 	baseDir := path[:len(path)-1]
 	compositeEntry := []Entry{}
 
+	// 对某个路径下的所有文件执行此函数
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -17,6 +18,7 @@ func newWildcardEntry(path string) CompositeEntry {
 		if info.IsDir() && path != baseDir {
 			return filepath.SkipDir
 		}
+		// 对jar包构建Entry
 		if strings.HasSuffix(path, ".jar") || strings.HasSuffix(path, ".JAR") {
 			jarEntry := newZipEntry(path)
 			compositeEntry = append(compositeEntry, jarEntry)

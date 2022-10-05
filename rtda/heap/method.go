@@ -12,6 +12,7 @@ type Method struct {
 	argSlotCount uint
 }
 
+//  classfile.MemberInfo 转换为 Methods
 func newMethods(class *Class, cfMethods []*classfile.MemberInfo) []*Method {
 	methods := make([]*Method, len(cfMethods))
 	for i, cfMethod := range cfMethods {

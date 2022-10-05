@@ -5,30 +5,11 @@ import (
 	"jvm/instructions"
 	"jvm/instructions/base"
 	"jvm/rtda"
-	"jvm/rtda/heap"
 )
 
-
-func interpret(method *heap.Method, logInst bool, args []string) {
-	thread := rtda.NewThread()
-	frame := thread.NewFrame(method)
-	thread.PushFrame(frame)
-
-	jArgs := createArgsArray(method.Class().Loader(), args)
-	frame.LocalVars().SetRef(0, jArgs)
-
+func interpret(thread *rtda.Thread, logInst bool) {
 	defer catchErr(thread)
 	loop(thread, logInst)
-}
-
-func createArgsArray(loader *heap.ClassLoader, args []string) *heap.Object {
-	stringClass := loader.LoadClass("java/lang/String")
-	argsArr := stringClass.ArrayClass().NewArray(uint(len(args)))
-	jArgs := argsArr.Refs()
-	for i, arg := range args {
-		jArgs[i] = heap.JString(loader, arg)
-	}
-	return argsArr
 }
 
 func catchErr(thread *rtda.Thread) {
@@ -41,7 +22,7 @@ func catchErr(thread *rtda.Thread) {
 func loop(thread *rtda.Thread, logInst bool) {
 	reader := &base.BytecodeReader{}
 	for {
-		frame := thread.CurrentFrame()
+		frame := thread.CurrentFrame() // 当前函数栈帧
 		pc := frame.NextPC()
 		thread.SetPC(pc)
 
@@ -77,7 +58,8 @@ func logFrames(thread *rtda.Thread) {
 		frame := thread.PopFrame()
 		method := frame.Method()
 		className := method.Class().Name()
-		fmt.Printf(">> pc:%4d %v.%v%v \n",
-			frame.NextPC(), className, method.Name(), method.Descriptor())
+		lineNum := method.GetLineNumber(frame.NextPC())
+		fmt.Printf(">> line:%4d pc:%4d %v.%v%v \n",
+			lineNum, frame.NextPC(), className, method.Name(), method.Descriptor())
 	}
 }

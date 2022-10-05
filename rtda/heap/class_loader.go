@@ -42,7 +42,7 @@ func (self *ClassLoader) loadBasicClasses() {
 
 // 加载基本数据类型
 func (self *ClassLoader) loadPrimitiveClasses() {
-	for primitiveType, _ := range primitiveTypes {
+	for primitiveType := range primitiveTypes {
 		self.loadPrimitiveClass(primitiveType)
 	}
 }
@@ -60,18 +60,18 @@ func (self *ClassLoader) loadPrimitiveClass(className string) {
 }
 
 func (self *ClassLoader) LoadClass(name string) (class *Class) {
-	if class, ok := self.classMap[name]; ok {
+	if class, ok := self.classMap[name]; ok { // 检测缓存中有没有
 		// alreay loaded
 		return class
 	}
 
-	if name[0] == '[' {
+	if name[0] == '[' { // 判断是否是数组类
 		class = self.loadArrayClass(name)
 	} else {
 		class = self.loadNonArrayClass(name)
 	}
 
-	// 任意一个class加载时都会关联java.lang.Class
+	// 任意一个class加载时都会关联java.lang.Class的一个实例
 	// 使之jClass为java.lang.Class的一个实例
 	// 使之jClass.extra 为其自身
 	if jlClassClass, ok := self.classMap["java/lang/Class"]; ok {
@@ -135,6 +135,7 @@ func parseClass(data []byte) *Class {
 
 func resolveSuperClass(class *Class) {
 	if class.name != "java/lang/Object" {
+		// 递归向上加载类
 		class.superClass = class.loader.LoadClass(class.superClassName)
 	}
 }
@@ -144,6 +145,7 @@ func resolveInterfaces(class *Class) {
 	if interfaceCount > 0 {
 		class.interfaces = make([]*Class, interfaceCount)
 		for i, interfaceName := range class.interfaceNames {
+			// 逐个加载接口类
 			class.interfaces[i] = class.loader.LoadClass(interfaceName)
 		}
 	}

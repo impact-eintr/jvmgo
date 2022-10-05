@@ -11,6 +11,9 @@ type Classpath struct {
 	userClasspath Entry
 }
 
+// Classpath结构体有三个字段，分别存放三种类路径。
+// Parse()函数使用-Xjre选项解析启动类路径和扩展类路径，
+// 使用-classpath/-cp选项解析用户类路径
 func Parse(jreOption, cpOption string) *Classpath {
 	cp := &Classpath{}
 	cp.parseBootAndExtClasspath(jreOption)

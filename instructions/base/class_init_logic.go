@@ -5,6 +5,10 @@ import (
 	"jvm/rtda/heap"
 )
 
+// 初始化类
+// 标志已经初始化
+// 构造函数压栈
+// 递归构造父类
 func InitClass(thread *rtda.Thread, class *heap.Class) {
 	class.StartInit()
 	scheduleClinit(thread, class)

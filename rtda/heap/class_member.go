@@ -3,10 +3,10 @@ package heap
 import "jvm/classfile"
 
 type ClassMember struct {
-	accessFlags uint16
-	name string
-	descriptor string
-	class *Class
+	accessFlags uint16 // 访问级别
+	name string // 类名
+	descriptor string // 描述符
+	class *Class // 类指针
 }
 
 func (self *ClassMember) copyMemberInfo(memberInfo *classfile.MemberInfo) {
