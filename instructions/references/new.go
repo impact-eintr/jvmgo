@@ -11,7 +11,6 @@ type NEW struct {
 	base.Index16Instruction
 }
 
-
 func (self *NEW) Execute(frame *rtda.Frame) {
 	cp := frame.Method().Class().ConstantPool()
 	classRef := cp.GetConstant(self.Index).(*heap.ClassRef)
