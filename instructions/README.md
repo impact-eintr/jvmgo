@@ -978,14 +978,157 @@ func (self *GOTO_W) Execute(frame *rtda.Frame) {
 }
 ```
 
+## RETURN
+
+直接弹出即将退出当前函数栈帧
+
+``` go
+// Return void from method
+type RETURN struct {
+	base.NoOperandsInstruction
+}
+func (self *RETURN) Execute(frame *rtda.Frame) {
+	frame.Thread().PopFrame()
+}
+```
+
+弹出即将退出当前函数栈帧，弹出该栈栈顶的数据后，主线程的栈顶函数栈帧将这些数据再次压栈
+
+``` go
+
+// Return int from method
+type IRETURN struct {
+	base.NoOperandsInstruction
+}
+func (self *IRETURN) Execute(frame *rtda.Frame) {
+	thread := frame.Thread()
+	currentFrame := thread.PopFrame()
+	invokerFrame := thread.TopFrame()
+	val := currentFrame.OperandStack().PopInt()
+	invokerFrame.OperandStack().PushInt(val)
+}
+```
+
+## PUT_STATIC
 
 
 
-## 
+``` go
+// Get static field from class
+type GET_STATIC struct{ base.Index16Instruction }
+
+func (self *GET_STATIC) Execute(frame *rtda.Frame) {
+	cp := frame.Method().Class().ConstantPool()
+	fieldRef := cp.GetConstant(self.Index).(*heap.FieldRef)
+	field := fieldRef.ResolvedField()
+	class := field.Class()
+	if !class.InitStarted() {
+		frame.RevertNextPC()
+		base.InitClass(frame.Thread(), class)
+		return
+	}
+
+	if !field.IsStatic() {
+		panic("java.lang.IncompatibleClassChangeError")
+	}
+
+	descriptor := field.Descriptor()
+	slotId := field.SlotId()
+	slots := class.StaticVars()
+	stack := frame.OperandStack()
+
+	switch descriptor[0] {
+	case 'Z', 'B', 'C', 'S', 'I':
+		stack.PushInt(slots.GetInt(slotId))
+	case 'F':
+		stack.PushFloat(slots.GetFloat(slotId))
+	case 'J':
+		stack.PushLong(slots.GetLong(slotId))
+	case 'D':
+		stack.PushDouble(slots.GetDouble(slotId))
+	case 'L', '[':
+		stack.PushRef(slots.GetRef(slotId))
+	default:
+		// TODO
+	}
+}
+
+```
+
+### 符号引用解析
 
 
 
+## GET_STATIC
 
+``` go
+// putstatic指令给类的某个静态变量赋值
+type PUT_STATIC struct {
+	base.Index16Instruction
+}
+
+func (self *PUT_STATIC) Execute(frame *rtda.Frame) {
+	currentMethod := frame.Method()
+	currentClass := currentMethod.Class()
+	cp := currentClass.ConstantPool()
+	// 通过这个索引可以从当前类的运行时常量池中找到一个字段符号引用
+	fieldRef := cp.GetConstant(self.Index).(*heap.FieldRef)
+	field := fieldRef.ResolvedField()
+	class := field.Class()
+	// init class
+	if !class.InitStarted() {
+		frame.RevertNextPC()
+		base.InitClass(frame.Thread(), class)
+		return
+	}
+
+	if !field.IsStatic() {
+		panic("java.lang.IncompatiableClassChangeError")
+	}
+	// 如果是final字段,则实际操作的是静态常量,只能在类初始化方法中给它赋值
+	// 类初始化方法由编译器生成,名字是<clinit>
+	if field.IsFinal() {
+		if currentClass != class || currentMethod.Name() != "<clinit>" {
+			panic("java.lang.IllegalAccessError")
+		}
+	}
+
+	descriptor := field.Descriptor()
+	slotId := field.SlotId()
+	slots := class.StaticVars()
+	stack := frame.OperandStack()
+
+	switch descriptor[0] {
+	case 'Z', 'B', 'C', 'S', 'I':
+		slots.SetInt(slotId, stack.PopInt())
+	case 'F':
+		slots.SetFloat(slotId, stack.PopFloat())
+	case 'J':
+		slots.SetLong(slotId, stack.PopLong())
+	case 'D':
+		slots.SetDouble(slotId, stack.PopDouble())
+	case 'L', '[':
+		slots.SetRef(slotId, stack.PopRef())
+	default:
+		// TODO
+	}
+}
+
+```
+
+## GET_FIELD
+
+
+## PUT_FIELD
+
+
+## INVOKE_VIRTUAL
+
+## INVOKE_SPECIAL
+
+## INVOKE_STATIC
+
+## INVOKE_INTERFACE
 
 
 
