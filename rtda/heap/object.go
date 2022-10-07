@@ -17,6 +17,10 @@ func (self *Object) Class() *Class {
 	return self.class
 }
 
+func (self *Object) Data() interface{} {
+	return self.data
+}
+
 func (self *Object) Fields() Slots {
 	return self.data.(Slots)
 }

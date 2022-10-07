@@ -210,6 +210,7 @@ func (self *Class) GetRefVar(fieldName, fieldDescriptor string) *Object {
 	return self.staticVars.GetRef(field.slotId)
 }
 
+// 设置静态字段值
 func (self *Class) SetRefVar(fieldName, fieldDescriptor string, ref *Object) {
 	field := self.getField(fieldName, fieldDescriptor, true)
 	self.staticVars.SetRef(field.slotId, ref)
