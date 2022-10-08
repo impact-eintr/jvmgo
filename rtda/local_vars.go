@@ -68,3 +68,7 @@ func (self LocalVars) SetSlot(index uint, slot Slot) {
 func (self LocalVars) GetThis() *heap.Object {
 	return self.GetRef(0)
 }
+
+func (self LocalVars) GetBoolean(index uint) bool {
+	return self.GetInt(index) == 1
+}

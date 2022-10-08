@@ -87,7 +87,7 @@ func _sysProps() map[string]string {
 	return map[string]string{
 		"java.version":         "1.8.0",
 		"java.vendor":          "jvm.go",
-		"java.vendor.url":      "https://github.com/impact-eintr/jvmgo",
+		"java.vendor.url":      "https://github.com/impact-eintr/jvm",
 		"java.home":            "todo",
 		"java.class.version":   "52.0",
 		"java.class.path":      "todo",

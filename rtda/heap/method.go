@@ -9,6 +9,11 @@ type Method struct {
 	code []byte
 	exceptionTable ExceptionTable
 	lineNumberTable *classfile.LineNumberTableAttribute
+	exceptions *classfile.ExceptionsAttribute
+	// Runtime Visible Parameter Annotations Attribute
+	parameterAnnotationData []byte
+	annotationDefaultData []byte
+	parseDescriptor *MethodDescriptor
 	argSlotCount uint
 }
 
@@ -27,6 +32,7 @@ func newMethod(class *Class, cfMethod *classfile.MemberInfo) *Method {
 	method.copyMemberInfo(cfMethod)
 	method.copyAttributes(cfMethod)
 	md := parseMethodDescriptor(method.descriptor)
+	method.parseDescriptor = md
 	method.calcArgSlotCount(md.parameterTypes)
 	if method.IsNative() { // 本地方法没有字节码 需要注入字节码和其他信息
 		method.injectCodeAttribute(md.returnType)
@@ -43,6 +49,11 @@ func (self *Method) copyAttributes(cfMethod *classfile.MemberInfo) {
 		self.exceptionTable = newExcetionTable(codeAttr.ExceptionTable(),
 			self.class.constantPool)
 	}
+	self.exceptions = cfMethod.ExceptionsAttribute()
+	self.annotationData = cfMethod.RuntimeVisibleAnnotationsAttributeData()
+	self.parameterAnnotationData =
+		cfMethod.RuntimeVisibleParameterAnnotationsAttributeData()
+	self.annotationDefaultData = cfMethod.AnnotationDefaultAttributeData()
 }
 
 func (self *Method) calcArgSlotCount(paramTypes []string) {
@@ -125,4 +136,53 @@ func (self *Method) GetLineNumber(pc int) int {
 		return -1
 	}
 	return self.lineNumberTable.GetLineNumber(pc)
+}
+
+// <init> 是对象构造函数
+// <clinit> 是类构造函数
+
+func (self *Method) isConstructor() bool {
+	return !self.IsStatic() && self.name == "<init>"
+}
+
+func (self *Method) isClinit() bool {
+	return self.IsStatic() && self.name == "<cinit>"
+}
+
+// reflection
+func (self *Method) ParameterTypes() []*Class {
+	if self.argSlotCount == 0 {
+		return nil
+	}
+
+	paramTypes := self.parseDescriptor.parameterTypes
+	paramClasses := make([]*Class, len(paramTypes))
+	for i, paramType := range paramTypes {
+		paramClassName := toClassName(paramType)
+		paramClasses[i] = self.class.loader.LoadClass(paramClassName)
+	}
+
+	return paramClasses
+}
+
+func (self *Method) ReturnType() *Class {
+	returnType := self.parseDescriptor.returnType
+	returnClassName := toClassName(returnType)
+	return self.class.loader.LoadClass(returnClassName)
+}
+
+func (self *Method) ExceptionTypes() []*Class {
+	if self.exceptions == nil {
+		return nil
+	}
+
+	exIndexTable := self.exceptions.ExceptionIndexTable()
+	exClasses := make([]*Class, len(exIndexTable))
+	cp := self.class.constantPool
+
+	for i, exIndex := range exIndexTable {
+		classRef := cp.GetConstant(uint(exIndex)).(*ClassRef)
+		exClasses[i] = classRef.ResolvedClass()
+	}
+	return exClasses
 }

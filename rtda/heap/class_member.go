@@ -6,6 +6,7 @@ type ClassMember struct {
 	accessFlags uint16 // 访问级别
 	name string // 类名
 	descriptor string // 描述符
+	annotationData []byte // RuntimeVisibleAnnotations_attribute
 	class *Class // 类指针
 }
 
@@ -45,6 +46,10 @@ func (self *ClassMember) Name() string {
 
 func (self *ClassMember) Descriptor() string {
 	return self.descriptor
+}
+
+func (self *ClassMember) AnnotationData() []byte {
+	return self.annotationData
 }
 
 func (self *ClassMember) Class() *Class {

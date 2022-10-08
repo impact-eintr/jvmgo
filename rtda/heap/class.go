@@ -205,6 +205,7 @@ func (self *Class) GetStaticMethod(name, descriptor string) *Method {
 	return self.getMethod(name, descriptor, true)
 }
 
+// reflection
 func (self *Class) GetRefVar(fieldName, fieldDescriptor string) *Object {
 	field := self.getField(fieldName, fieldDescriptor, true)
 	return self.staticVars.GetRef(field.slotId)
@@ -214,4 +215,47 @@ func (self *Class) GetRefVar(fieldName, fieldDescriptor string) *Object {
 func (self *Class) SetRefVar(fieldName, fieldDescriptor string, ref *Object) {
 	field := self.getField(fieldName, fieldDescriptor, true)
 	self.staticVars.SetRef(field.slotId, ref)
+}
+
+func (self *Class) GetFields(publicOnly bool) []*Field {
+	if publicOnly {
+		publibFields := make([]*Field, 0, len(self.fields))
+		for _, field := range self.fields {
+			if field.IsPublic() {
+				publibFields = append(publibFields, field)
+			}
+		}
+		return publibFields
+	} else {
+		return self.fields
+	}
+}
+
+func (self *Class) GetConstructor(descriptor string) *Method {
+	return self.GetInstanceMethod("<init>", descriptor)
+}
+
+
+func (self *Class) GetConstructors(publicOnly bool) []*Method {
+	constructors := make([]*Method, 0, len(self.methods))
+	for _, method := range self.methods {
+    if method.isConstructor() {
+      if !publicOnly || method.IsPublic() {
+        constructors = append(constructors, method)
+      }
+    }
+  }
+  return constructors
+}
+
+func (self *Class) GetMethods(publicOnly bool) []*Method {
+	methods := make([]*Method, 0, len(self.methods))
+	for _, method := range self.methods {
+		if !method.isClinit() && !method.isConstructor() {
+			if !publicOnly || method.IsPublic() {
+				methods = append(methods, method)
+			}
+		}
+	}
+	return methods
 }

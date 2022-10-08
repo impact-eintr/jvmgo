@@ -49,3 +49,15 @@ func (self *Object) SetRefVar(name, descriptor string, ref *Object) {
 	slots := self.data.(Slots)
 	slots.SetRef(field.slotId, ref)
 }
+
+func (self *Object) SetIntVar(name, descriptor string, val int32) {
+	field := self.class.getField(name, descriptor, false)
+	slots := self.data.(Slots)
+	slots.SetInt(field.slotId, val)
+}
+
+func (self *Object) GetIntVar(name, descriptor string) int32 {
+	field := self.class.getField(name, descriptor, false)
+	slots := self.data.(Slots)
+	return slots.GetInt(field.slotId)
+}
