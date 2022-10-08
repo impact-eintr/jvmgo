@@ -3,11 +3,12 @@ package heap
 import "jvm/classfile"
 
 type ClassMember struct {
-	accessFlags uint16 // 访问级别
-	name string // 类名
-	descriptor string // 描述符
+	accessFlags    uint16 // 访问级别
+	name           string // 类名
+	descriptor     string // 描述符
+	signature      string
 	annotationData []byte // RuntimeVisibleAnnotations_attribute
-	class *Class // 类指针
+	class          *Class // 类指针
 }
 
 func (self *ClassMember) copyMemberInfo(memberInfo *classfile.MemberInfo) {
@@ -40,12 +41,21 @@ func (self *ClassMember) IsSynthetic() bool {
 	return 0 != self.accessFlags&ACC_SYNTHETIC
 }
 
+// getters
+func (self *ClassMember) AccessFlags() uint16 {
+	return self.accessFlags
+}
+
 func (self *ClassMember) Name() string {
 	return self.name
 }
 
 func (self *ClassMember) Descriptor() string {
 	return self.descriptor
+}
+
+func (self *ClassMember) Signature() string {
+	return self.signature
 }
 
 func (self *ClassMember) AnnotationData() []byte {

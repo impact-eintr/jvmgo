@@ -1,6 +1,7 @@
 package lang
 
 import (
+	"jvm/instructions/base"
 	"jvm/native"
 	"jvm/rtda"
 	"jvm/rtda/heap"
@@ -67,9 +68,9 @@ func initProperties(frame *rtda.Frame) {
 	stack := frame.OperandStack()
 	stack.PushRef(props)
 
-	//setPropMethod := props.Class().GetInstanceMethod("setProperty",
-	//	"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;")
-	//thread := frame.Thread()
+	setPropMethod := props.Class().GetInstanceMethod("setProperty",
+		"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;")
+	thread := frame.Thread()
 	for k, v := range _sysProps() {
 		jKey := heap.JString(frame.Method().Class().Loader(), k)
 		jVal := heap.JString(frame.Method().Class().Loader(), v)
@@ -77,9 +78,9 @@ func initProperties(frame *rtda.Frame) {
 		ops.PushRef(props)
 		ops.PushRef(jKey)
 		ops.PushRef(jVal)
-		// TODO
-		println("可爱捏")
-		//base.InvokeMethod(frame, setPropMethod) // FIXME
+		shimFrame := rtda.NewShimFrame(thread, ops)
+		thread.PushFrame(shimFrame)
+		base.InvokeMethod(shimFrame, setPropMethod)
 	}
 }
 
@@ -108,7 +109,6 @@ func _sysProps() map[string]string {
 	}
 }
 
-
 // private static native void setIn0(InputStream in);
 // (Ljava/io/InputStream;)V
 func setIn0(frame *rtda.Frame) {
@@ -119,7 +119,7 @@ func setIn0(frame *rtda.Frame) {
 	sysClass.SetRefVar("in", "Ljava/io/InputStream;", in)
 }
 
-// private static native void setIn0(PrintStream out);
+// private static native void setOut0(PrintStream out);
 // (Ljava/io/PrintStream;)V
 func setOut0(frame *rtda.Frame) {
 	vars := frame.LocalVars() // []Slot => []Object
@@ -129,7 +129,7 @@ func setOut0(frame *rtda.Frame) {
 	sysClass.SetRefVar("out", "Ljava/io/PrintStream;", out)
 }
 
-// private static native void setIn0(PrintStream err);
+// private static native void setErr0(PrintStream err);
 // (Ljava/io/PrintStream;)V
 func setErr0(frame *rtda.Frame) {
 	vars := frame.LocalVars()

@@ -13,7 +13,7 @@ type Method struct {
 	// Runtime Visible Parameter Annotations Attribute
 	parameterAnnotationData []byte
 	annotationDefaultData []byte
-	parseDescriptor *MethodDescriptor
+	parsedDescriptor *MethodDescriptor
 	argSlotCount uint
 }
 
@@ -32,7 +32,7 @@ func newMethod(class *Class, cfMethod *classfile.MemberInfo) *Method {
 	method.copyMemberInfo(cfMethod)
 	method.copyAttributes(cfMethod)
 	md := parseMethodDescriptor(method.descriptor)
-	method.parseDescriptor = md
+	method.parsedDescriptor = md
 	method.calcArgSlotCount(md.parameterTypes)
 	if method.IsNative() { // 本地方法没有字节码 需要注入字节码和其他信息
 		method.injectCodeAttribute(md.returnType)
@@ -110,12 +110,27 @@ func (self *Method) IsStrict() bool {
 func (self *Method) MaxStack() uint {
 	return self.maxStack
 }
+
 func (self *Method) MaxLocals() uint {
 	return self.maxLocals
 }
+
 func (self *Method) Code() []byte {
 	return self.code
 }
+
+func (self *Method) ParameterAnnotationData() []byte {
+	return self.parameterAnnotationData
+}
+
+func (self *Method) AnnotationDefaultData() []byte {
+	return self.annotationDefaultData
+}
+
+func (self *Method) ParsedDescriptor() *MethodDescriptor {
+	return self.parsedDescriptor
+}
+
 func (self *Method) ArgSlotCount() uint {
 	return self.argSlotCount
 }
@@ -146,7 +161,7 @@ func (self *Method) isConstructor() bool {
 }
 
 func (self *Method) isClinit() bool {
-	return self.IsStatic() && self.name == "<cinit>"
+	return self.IsStatic() && self.name == "<clinit>"
 }
 
 // reflection
@@ -155,7 +170,7 @@ func (self *Method) ParameterTypes() []*Class {
 		return nil
 	}
 
-	paramTypes := self.parseDescriptor.parameterTypes
+	paramTypes := self.parsedDescriptor.parameterTypes
 	paramClasses := make([]*Class, len(paramTypes))
 	for i, paramType := range paramTypes {
 		paramClassName := toClassName(paramType)
@@ -166,7 +181,7 @@ func (self *Method) ParameterTypes() []*Class {
 }
 
 func (self *Method) ReturnType() *Class {
-	returnType := self.parseDescriptor.returnType
+	returnType := self.parsedDescriptor.returnType
 	returnClassName := toClassName(returnType)
 	return self.class.loader.LoadClass(returnClassName)
 }

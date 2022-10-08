@@ -77,6 +77,10 @@ func (self *Class) IsEnum() bool {
 }
 
 // getters
+func (self *Class) AccessFlags() uint16 {
+	return self.accessFlags
+}
+
 func (self *Class) Name() string {
 	return self.name
 }
@@ -103,6 +107,10 @@ func (self *Class) Loader() *ClassLoader {
 
 func (self *Class) SuperClass() *Class {
 	return self.superClass
+}
+
+func (self *Class) Interfaces() []*Class {
+	return self.interfaces
 }
 
 func (self *Class) StaticVars() Slots {

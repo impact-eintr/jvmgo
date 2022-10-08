@@ -47,5 +47,5 @@ func lookupInterfaceMethod(iface *Class, name, descriptor string) *Method {
 			return method
 		}
 	}
-	return lookupMethodInterfaces(iface.interfaces, name, descriptor)
+	return lookupMethodInInterfaces(iface.interfaces, name, descriptor)
 }

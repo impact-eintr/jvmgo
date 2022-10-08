@@ -163,8 +163,8 @@ var (
 	_return = &RETURN{}
 	arraylength   = &ARRAY_LENGTH{}
 	athrow        = &ATHROW{}
-	// monitorenter  = &MONITOR_ENTER{}
-	// monitorexit   = &MONITOR_EXIT{}
+	monitorenter  = &MONITOR_ENTER{}
+	monitorexit   = &MONITOR_EXIT{}
 	invoke_native = &INVOKE_NATIVE{}
 )
 
@@ -558,10 +558,10 @@ func NewInstruction(opcode byte) base.Instruction {
 		return &CHECK_CAST{}
 	case 0xc1:
 		return &INSTANCE_OF{}
-	// case 0xc2:
-	// 	return monitorenter
-	// case 0xc3:
-	// 	return monitorexit
+	case 0xc2:
+		return monitorenter
+	case 0xc3:
+		return monitorexit
 	case 0xc4:
 		return &WIDE{}
 	case 0xc5:

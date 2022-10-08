@@ -52,7 +52,6 @@ func (self *JVM) execMain() {
 	interpret(self.mainThread, self.cmd.verboseInstFlag)
 }
 
-
 func (self *JVM) createArgsArray() *heap.Object {
 	stringClass := self.classLoader.LoadClass("java/lang/String")
 	argsLen := uint(len(self.cmd.args))
