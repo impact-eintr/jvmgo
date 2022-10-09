@@ -59,7 +59,7 @@ func ArrayCopy(src, dst *Object, srcPos, dstPos, length int32) {
 	switch src.data.(type) {
 	case []int8:
 		_src := src.data.([]int8)[srcPos : srcPos+length]
-		_dst := src.data.([]int8)[dstPos : dstPos+length]
+		_dst := dst.data.([]int8)[dstPos : dstPos+length]
 		copy(_dst, _src)
 	case []int16:
 		_src := src.data.([]int16)[srcPos : srcPos+length]

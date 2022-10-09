@@ -10,7 +10,7 @@ import (
 // special handling for superclass, private, and instance initialization method invocations
 type INVOKE_SPECIAL struct{ base.Index16Instruction }
 
-// hack!
+// Invoke instance method;
 func (self *INVOKE_SPECIAL) Execute(frame *rtda.Frame) {
 	currentClass := frame.Method().Class() // 当前类 调用resolvedClass的类
 	cp := currentClass.ConstantPool() // 当前常量池
