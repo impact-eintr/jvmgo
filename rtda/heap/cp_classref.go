@@ -1,6 +1,7 @@
 package heap
 
 import (
+	"fmt"
 	"jvm/classfile"
 )
 
