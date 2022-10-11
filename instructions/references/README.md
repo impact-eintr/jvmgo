@@ -625,7 +625,70 @@ func newObject(class *Class) *Object {
 }
 ```
 
-`Object.data`是与
+`Object.data`是与`Class.instanceSlotCount`占用量相同的数据区。
+
+``` go
+func (self *Object) Fields() Slots {
+	return self.data.(Slots)
+}
+
+func (self Slots) SetInt(index uint, val int32) {
+	self[index].num = val
+}
+```
+
+`ref.Fields().SetInt()`就是在Object的对应数据区设置val。
+
+
+## GETFIELD
+
+``` java
+    x = myObj.instanceVar;               // getfield
+```
+
+``` go
+type GET_FIELD struct {
+	base.Index16Instruction
+}
+
+func (self *GET_FIELD) Execute(frame *rtda.Frame) {
+	cp := frame.Method().Class().ConstantPool()
+	fieldRef := cp.GetConstant(self.Index).(*heap.FieldRef)
+	field := fieldRef.ResolvedField()
+
+	if field.IsStatic() {
+		panic("java.lang.IncompatibleClassChangeError")
+	}
+
+	stack := frame.OperandStack()
+	ref := stack.PopRef() // this指针
+	if ref == nil {
+		panic("java.lang.NullPointerException")
+	}
+
+	descriptor := field.Descriptor()
+	slotId := field.SlotId()
+	slots := ref.Fields() // 当前实例所有的字段
+
+	switch descriptor[0] {
+    // ...
+	case 'L', '[':
+		stack.PushRef(slots.GetRef(slotId)) // 从指定的字段中获取数据 并压入操作数栈
+	default:
+		// TODO
+	}
+}
+```
+
+## INSTANCEOF
+
+
+
+## CHECKCAST
+
+``` java
+
+```
 
 ### LocalVars
 
@@ -639,21 +702,4 @@ type Slot struct {
 ```
 
 LocalVars用来表示局部变量表。从逻辑上来看， LocalVars实例就像一个数组，这个数组的每一个元素都足够容纳一个int、float或引用值(要放入double或者long值，需要相邻的两个元素)
-
-
-## GETFIELD
-
-``` java
-    x = myObj.instanceVar;               // getfield
-```
-
-## INSTANCEOF
-
-
-
-## CHECKCAST
-
-``` java
-
-```
 
