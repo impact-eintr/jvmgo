@@ -1,9 +1,6 @@
 package heap
 
-import (
-	"fmt"
-	"jvm/classfile"
-)
+import "jvm/classfile"
 
 type ClassRef struct {
 	SymRef

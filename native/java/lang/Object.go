@@ -1,9 +1,10 @@
 package lang
 
 import (
-	"unsafe"
+	"fmt"
 	"jvm/native"
 	"jvm/rtda"
+	"unsafe"
 )
 
 const jlObject = "java/lang/Object"
@@ -20,6 +21,7 @@ func init() {
 func getClass(frame *rtda.Frame) {
 	this := frame.LocalVars().GetThis()
 	class := this.Class().JClass() // 获取类对象引用 java.lang.Class
+	fmt.Println("114514 getClass", this.Class().Name())
 	frame.OperandStack().PushRef(class)
 }
 

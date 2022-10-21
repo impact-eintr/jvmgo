@@ -25,9 +25,10 @@ const _fieldConstructorDescriptor = "" +
 // (Z)[Ljava/lang/reflect/Field;
 func getDeclaredFields0(frame *rtda.Frame) {
 	vars := frame.LocalVars()
-	classObj := vars.GetThis()
+	classObj := vars.GetThis() // classObject是 java.lang.Class的那个实例
 	publicOnly := vars.GetBoolean(1)
 
+	// classObj.Extra()是在classLoader加载类的时候设置的 Class实例的 extra为 持有它的类
 	class := classObj.Extra().(*heap.Class)
 	fields := class.GetFields(publicOnly)
 	fieldCount := uint(len(fields))
