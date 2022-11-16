@@ -225,6 +225,7 @@ func (self *Class) SetRefVar(fieldName, fieldDescriptor string, ref *Object) {
 	self.staticVars.SetRef(field.slotId, ref)
 }
 
+// 此函数用于反射时获取类的字段信息，不包含继承属性
 func (self *Class) GetFields(publicOnly bool) []*Field {
 	if publicOnly {
 		publibFields := make([]*Field, 0, len(self.fields))
